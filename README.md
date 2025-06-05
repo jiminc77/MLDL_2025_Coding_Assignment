@@ -368,14 +368,12 @@ class Model:
     
     ```python
     def _gini_impurity(self, y):
-        """Calculate Gini impurity"""
         if len(y) == 0:
             return 0
         p = np.sum(y == 1) / len(y)
         return 2 * p * (1 - p)
     
     def _information_gain(self, y, left_y, right_y):
-        """Calculate information gain"""
         n = len(y)
         if n == 0:
             return 0
