@@ -107,8 +107,8 @@ class Model:
         X_b = self._add_bias(X)
         return self._sigmoid(X_b @ self.w)
 
-    def predict(self, X):
-        return (self.predict_proba(X) >= 0.5).astype(int)
+    def predict(self, X, thr=0.5):
+        return (self.predict_proba(X) >= thr).astype(int)
 ```
 
 **주요 구현 특징:**
@@ -116,7 +116,7 @@ class Model:
 - Bias 항을 추가하는 메서드 구현
 - Gradient descent를 통한 weight update
 - L2 regularization 적용
-- Prediction threshold 0.5 이상을 positive class로 분류
+- Prediction threshold 기본값은 0.5이며, `predict` 메서드의 `thr` 인자로 조정 가능
 
 ### 2.4 하이퍼파라미터
 
