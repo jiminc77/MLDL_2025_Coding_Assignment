@@ -1,7 +1,5 @@
 ## 1. Baseline 코드 분석
 
----
-
 ### 1.1 구현 개요
 
 Baseline 코드에서는 기본적인 모델 구현을 위한 템플릿만 제공. 데이터 로드 및 분할, 모델 클래스 정의, 예측 및 제출 파일 생성을 위한 기본 구조 포함.
@@ -44,8 +42,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 ```
 
 ## 2. Ver 1: Logistic Regression + L2 Regularization
-
----
 
 ### 2.1 구현 개요
 
@@ -145,8 +141,6 @@ Validation dataset에 대한 accuracy는 56.31%로, 목표치에 크게 미치�
 이러한 한계점을 극복하기 위해 데이터의 특성을 더 깊이 분석하고, 모델의 complexity를 높이는 방향으로 개선이 필요했음.
 
 ## 3. Ver 2: Feature Engineering + Bagging
-
----
 
 ### 3.1 구현 개요
 
@@ -294,8 +288,6 @@ Validation dataset에 대한 accuracy는 **68.50%**로, 첫 버전(**56.31%**)�
 - 더 높은 성능을 위해서는 non-linearity가 강한 모델이 필요함
 
 ## 4. Final version: Random Forest
-
----
 
 ### 4.1 구현 개요
 
@@ -608,7 +600,7 @@ for md in max_depth_list:
             model.max_features = 'sqrt'
             model.bootstrap = True
             
-            print(f"\n--- Parameters: max_depth={md}, min_samples_split={mss}, min_samples_leaf={msl} ---")
+            print(f" Parameters: max_depth={md}, min_samples_split={mss}, min_samples_leaf={msl")
             
             model.fit(X_train, y_train)
 
