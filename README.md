@@ -663,3 +663,7 @@ Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 �
 2. Hyperparameter optimization을 위한 효율적인 방법론 적용
 3. 다양한 ensemble 기법(Gradient boosting 등) 비교 분석
 4. Imbalanced data 처리를 위한 추가적인 기법 적용
+
+## 7. K-Fold Validation with Feature Selection
+
+`kfold_cv.py` 스크립트는 사용자 정의 Random Forest에 대해 K-폴드 교차검증과 하이퍼파라미터 탐색을 수행한다. 여기에 더해 각 특성과 레이블 간 상관계수를 계산하여 상위 30개의 특성만을 사용하도록 Feature Selection 단계를 추가하였다. 선택된 특성으로 학습 및 검증을 진행하여 불필요한 노이즈를 줄이고 모델 성능을 향상시키고자 하였다.

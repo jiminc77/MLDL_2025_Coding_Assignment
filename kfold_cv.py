@@ -41,6 +41,21 @@ def add_interactions(X):
 
 X_values = add_interactions(X_values)
 
+# ---- Feature Selection ----
+def select_top_features(X, y, k=30):
+    """Select top-k features based on correlation with the target."""
+    corrs = []
+    for i in range(X.shape[1]):
+        c = np.corrcoef(X[:, i], y)[0, 1]
+        if np.isnan(c):
+            c = 0.0
+        corrs.append(abs(c))
+    indices = np.argsort(corrs)[::-1][:k]
+    return indices
+
+selected_idx = select_top_features(X_values, y_full, k=30)
+X_values = X_values[:, selected_idx]
+
 class Model:
     def __init__(self):
         self.n_estimators = 400
