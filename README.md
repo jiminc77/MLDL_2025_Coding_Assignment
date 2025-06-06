@@ -287,7 +287,7 @@ Validation dataset에 대한 accuracy는 **68.50%**로, 첫 버전(**56.31%**)�
 - Bootstrap bias를 충분히 평균화하지 못함
 - 더 높은 성능을 위해서는 non-linearity가 강한 모델이 필요함
 
-## 4. Final version: Random Forest
+## 4. Ver 3: Random Forest
 
 ### 4.1 구현 개요
 
@@ -619,8 +619,18 @@ for md in max_depth_list:
 ### 4.6 성능 평가
 
 Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**)에 비해 **7.38%p** 향상된 결과를 보임.
+## 5. Final Version: K-Fold Random Forest
 
-## 5. 성능 비교 및 분석
+### 5.1 구현 개요
+
+`ver_11.ipynb`에서는 기존 Random Forest를 기반으로 K-fold 교차검증을 이용한 하이퍼파라미터 튜닝과 feature selection을 통합하였다. 각 파라미터 조합과 feature 수(k=[20,30,40])에 대해 5-fold 검증을 수행하여 최적 설정을 찾고, 선택된 feature만을 사용해 전체 학습 데이터를 학습한다.
+
+### 5.2 성능 평가
+
+K-fold 교차검증 결과 최고의 조합을 사용했을 때 평균 정확도는 약 76.12%로, Ver 3 대비 소폭 향상되었다.
+
+
+## 6. 성능 비교 및 분석
 
 ### 5.1 성능 변화 요약
 
@@ -629,9 +639,10 @@ Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**
 - Baseline: 구현 없음
 - V**er 1** (Logistic Regression): 56.31%
 - **Ver 2** (Logistic Regression + Bagging): 68.50% (+12.19%p)
-- **Final version** (Random Forest): 75.88% (+7.38%p)
+- **Ver 3** (Random Forest): 75.88% (+7.38%p)
+- **Final version** (K-Fold Random Forest): 76.12% (+0.24%p)
 
-총 성능 향상: **+19.57%p** (Ver 1 대비 Final_version)
+총 성능 향상: **+19.81%p** (Ver 1 대비 Final version)
 
 ### 5.2 실패 요인 및 한계점
 
@@ -645,7 +656,7 @@ Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**
     - 아직도 정확도가 75% 정도
     - 더욱 강력한 Engineering Technique이 필요
 
-## 6. 결론
+## 7. 결론
 
 Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 단계별로 고찰함. 초기 logistic regression 모델에서 시작하여 feature engineering, bagging ensemble, 그리고 최종적으로 random forest 모델까지 점진적인 개선을 통해 성능을 향상시킴.
 
@@ -663,3 +674,7 @@ Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 �
 2. Hyperparameter optimization을 위한 효율적인 방법론 적용
 3. 다양한 ensemble 기법(Gradient boosting 등) 비교 분석
 4. Imbalanced data 처리를 위한 추가적인 기법 적용
+
+## 8. K-Fold Validation with Feature Selection
+
+`kfold_cv.py` 스크립트는 사용자 정의 Random Forest에 대해 K-폴드 교차검증과 하이퍼파라미터 탐색을 수행한다. 여기에 더해 각 특성과 레이블 간 상관계수를 계산하여 상위 30개의 특성만을 사용하도록 Feature Selection 단계를 추가하였다. 선택된 특성으로 학습 및 검증을 진행하여 불필요한 노이즈를 줄이고 모델 성능을 향상시키고자 하였다.
