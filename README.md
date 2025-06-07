@@ -1,3 +1,6 @@
+#MLDL_2025_Coding_Assignment
+20215179 전지민
+
 ## 1. Baseline 코드 분석
 
 ### 1.1 구현 개요
@@ -107,8 +110,8 @@ class Model:
         X_b = self._add_bias(X)
         return self._sigmoid(X_b @ self.w)
 
-    def predict(self, X, thr=0.5):
-        return (self.predict_proba(X) >= thr).astype(int)
+    def predict(self, X):
+        return (self.predict_proba(X) >= 0.5).astype(int)
 ```
 
 **주요 구현 특징:**
@@ -116,7 +119,7 @@ class Model:
 - Bias 항을 추가하는 메서드 구현
 - Gradient descent를 통한 weight update
 - L2 regularization 적용
-- Prediction threshold 기본값은 0.5이며, `predict` 메서드의 `thr` 인자로 조정 가능
+- Prediction threshold 0.5 이상을 positive class로 분류
 
 ### 2.4 하이퍼파라미터
 
@@ -287,11 +290,11 @@ Validation dataset에 대한 accuracy는 **68.50%**로, 첫 버전(**56.31%**)�
 - Bootstrap bias를 충분히 평균화하지 못함
 - 더 높은 성능을 위해서는 non-linearity가 강한 모델이 필요함
 
-## 4. Final version: Random Forest
+## 4. Ver 3: Random Forest
 
 ### 4.1 구현 개요
 
-최종 버전에서는 non-linearity가 강한 데이터셋에서 복잡한 패턴을 더 효과적으로 포착하기 위해 decision tree 기반의 random forest 모델을 직접 구현함. Tree 모델의 특성에 맞게 feature engineering을 수행하고, 다양한 최적화 기법을 적용함.
+Ver 3에서는,  non-linearity가 강한 데이터셋에서 복잡한 패턴을 더 효과적으로 포착하기 위해 decision tree 기반의 random forest 모델을 직접 구현함. Tree 모델의 특성에 맞게 feature engineering을 수행하고, 다양한 최적화 기법을 적용함.
 
 ### 4.2 데이터 전처리 및 Feature Engineering
 
@@ -305,7 +308,7 @@ def add_interactions(X):
     interactions = [
         (4, 9),   # 0.787 correlation
         (3, 9),   # 0.755 correlation
-        (10, 16), # 0.695 correlation
+        (10, 16), # 0.695 correlatio
         (11, 16), # 0.677 correlation
         (4, 10),  # 0.667 correlation
         (6, 8),   # 0.588 correlation
@@ -591,14 +594,14 @@ for md in max_depth_list:
     for mss in min_samples_split_list:
         for msl in min_samples_leaf_list:
             model = Model()
-            model.n_estimators = 300
+            model.n_estimators = 400
             model.max_depth = md
             model.min_samples_split = mss
             model.min_samples_leaf = msl
             model.max_features = 'sqrt'
             model.bootstrap = True
             
-            print(f" Parameters: max_depth={md}, min_samples_split={mss}, min_samples_leaf={msl")
+            print(f"\n--- Parameters: max_depth={md}, min_samples_split={mss}, min_samples_leaf={msl} ---")
             
             model.fit(X_train, y_train)
 
@@ -620,18 +623,30 @@ for md in max_depth_list:
 
 Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**)에 비해 **7.38%p** 향상된 결과를 보임.
 
-## 5. 성능 비교 및 분석
+## 5. Final version: **K-Fold Validation with Feature Selection**
 
-### 5.1 성능 변화 요약
+### 5.1 구현 개요
+
+최종 버전에서는 기존 Random Forest를 기반으로 K-fold 교차검증을 이용한 하이퍼파라미터 튜닝과 feature selection을 통합. 각 파라미터 조합과 feature 수 (k=[36, 38, 40])에 대해 5-fold 검증을 수행하여 최적 설정을 찾고, 선택된 feature만을 사용해 전체 학습 데이터를 학습.
+
+### 5.2 성능 평가
+
+K-fold 교차검증 결과 전체 40개 feature (기본 19개 + Ver 3에서 추가한 21개) 중 상위 38개의 피처를 사용했을 때 최고의 성능을 보임. 평균 정확도는 약 76.12%로, Ver 3 대비 소폭 향상
+
+## 6. 성능 비교 및 분석
+
+### 6.1 성능 변화 요약
 
 **각 버전별 validation accuracy 변화:**
 
 - Baseline: 구현 없음
-- V**er 1** (Logistic Regression): 56.31%
-- **Ver 2** (Logistic Regression + Bagging): 68.50% (+12.19%p)
-- **Final version** (Random Forest): 75.88% (+7.38%p)
-
-총 성능 향상: **+19.57%p** (Ver 1 대비 Final_version)
+- Ver 1 (Logistic Regression): 56.31%
+- Ver 2 (Logistic Regression + Bagging): 68.50% (+12.19%p)
+- Ver 3 (Random Forest): 75.88% (+7.38%p)
+- **Final version (Ver 3 & K-Fold & Feature Selection): 76.65% (+0.77%p)**
+    
+    **총 성능 향상: +20.34%p (Ver 1 대비 Final_version)**
+    
 
 ### 5.2 실패 요인 및 한계점
 
@@ -642,12 +657,12 @@ Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**
     - Linear model로 복잡한 non-linear pattern 포착 어려움
     - Feature engineering으로 일부 보완했으나 근본적 한계 존재
 3. **더욱 강력한 Feature Engineering, 비선형 패턴 해석 모델의 필요성 (Final Ver)**:
-    - 아직도 정확도가 75% 정도
+    - 아직도 정확도가 76% 정도
     - 더욱 강력한 Engineering Technique이 필요
 
 ## 6. 결론
 
-Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 단계별로 고찰함. 초기 logistic regression 모델에서 시작하여 feature engineering, bagging ensemble, 그리고 최종적으로 random forest 모델까지 점진적인 개선을 통해 성능을 향상시킴.
+Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 단계별로 고찰함. 초기 logistic regression 모델에서 시작하여 feature engineering, bagging ensemble, random forest 그리고 최종적으로 k-fold validation with feature selection 까지 점진적인 개선을 통해 성능을 향상시킴.
 
 **주요 발견점:**
 
