@@ -1,9 +1,9 @@
-# MLDL_2025_Coding_Assignment
-20215179 전지민
+# **MLDL 2025 Spring Coding Assignment**
+**20215179 전지민**
 
-## 1. Baseline 코드 분석
+## **1. Baseline 코드 분석**
 
-### 1.1 구현 개요
+### **1.1 구현 개요**
 
 Baseline 코드에서는 기본적인 모델 구현을 위한 템플릿만 제공. 데이터 로드 및 분할, 모델 클래스 정의, 예측 및 제출 파일 생성을 위한 기본 구조 포함.
 
@@ -19,7 +19,7 @@ class Model:
         pass
 ```
 
-### 1.2 데이터 전처리
+### **1.2 데이터 전처리**
 
 Baseline 코드에서는 다음과 같은 기본적인 데이터 전처리만 수행함:
 
@@ -44,13 +44,13 @@ y = df['Y'].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=32)
 ```
 
-## 2. Ver 1: Logistic Regression + L2 Regularization
+## **2. Ver 1: Logistic Regression + L2 Regularization**
 
-### 2.1 구현 개요
+### **2.1 구현 개요**
 
 첫 번째 버전에서는 logistic regression 모델을 직접 구현하고 L2 regularization을 적용함. 데이터의 분포는 크게 고려하지 않고, missing value 처리와 기본적인 normalization만 수행함.
 
-### 2.2 데이터 전처리
+### **2.2 데이터 전처리**
 
 Baseline 대비 다음과 같은 전처리 과정이 추가됨:
 
@@ -77,7 +77,7 @@ X_train = standardize(X_train)
 X_valid = standardize(X_valid)
 ```
 
-### 2.3 모델 구현
+### **2.3 모델 구현**
 
 Logistic regression 모델을 직접 구현하고 L2 regularization을 적용함:
 
@@ -114,14 +114,14 @@ class Model:
         return (self.predict_proba(X) >= 0.5).astype(int)
 ```
 
-**주요 구현 특징:**
+주요 구현 특징:
 
 - Bias 항을 추가하는 메서드 구현
 - Gradient descent를 통한 weight update
 - L2 regularization 적용
 - Prediction threshold 0.5 이상을 positive class로 분류
 
-### 2.4 하이퍼파라미터
+### **2.4 하이퍼파라미터**
 
 다음과 같은 hyperparameter를 사용함:
 
@@ -129,11 +129,11 @@ class Model:
 - Epochs: 4000
 - Regularization coefficient(reg): 0.01
 
-### 2.5 성능 평가
+### **2.5 성능 평가**
 
 Validation dataset에 대한 accuracy는 56.31%로, 목표치에 크게 미치지 못하는 결과를 보임.
 
-### 2.6 한계점 및 개선 방향
+### **2.6 한계점 및 개선 방향**
 
 첫 번째 버전의 주요 한계점:
 
@@ -143,13 +143,13 @@ Validation dataset에 대한 accuracy는 56.31%로, 목표치에 크게 미치�
 
 이러한 한계점을 극복하기 위해 데이터의 특성을 더 깊이 분석하고, 모델의 complexity를 높이는 방향으로 개선이 필요했음.
 
-## 3. Ver 2: Feature Engineering + Bagging
+## **3. Ver 2: Feature Engineering + Bagging**
 
-### 3.1 구현 개요
+### **3.1 구현 개요**
 
 두 번째 버전에서는 데이터 특성 분석을 통해 중요 feature를 식별하고, 이를 기반으로 feature engineering을 수행함. 또한, 모델의 stability와 performance를 향상시키기 위해 bagging ensemble 기법을 도입함.
 
-### 3.2 데이터 분석 및 Feature Engineering
+### **3.2 데이터 분석 및 Feature Engineering**
 
 데이터 특성 분석을 통해 상위 중요 특성 6개를 식별하고, 이를 기반으로 추가 feature를 생성함:
 
@@ -165,7 +165,7 @@ X_cross = np.column_stack([X_top[:, i] * X_top[:, j] for i, j in pairs])
 X_ext = np.hstack([X_base, X_sq, X_cross])
 ```
 
-**주요 feature engineering:**
+주요 feature engineering:
 
 - 상위 중요 특성 6개 선정 (X17, X6, X13, X10, X16, X1)
 - 선정된 특성들의 squared term 추가 (6개)
@@ -174,7 +174,7 @@ X_ext = np.hstack([X_base, X_sq, X_cross])
 
 이를 통해 logistic regression 모델이 non-linear decision boundary를 학습할 수 있도록 모델의 complexity를 증가시킴.
 
-### 3.3 개선된 Logistic Regression 모델
+### **3.3 개선된 Logistic Regression 모델**
 
 기존 logistic regression 모델에 class weight를 도입하여 imbalanced data 처리 능력을 향상시킴:
 
@@ -198,13 +198,13 @@ class LR:
             self.w -= self.lr * grad
 ```
 
-**주요 개선 사항:**
+주요 개선 사항:
 
 - Class weight(alpha) 도입: positive class에 더 높은 가중치 부여
 - Weight vector(`w_vec`)를 통한 class별 가중치 적용
 - 코드 간소화 및 최적화
 
-### 3.4 Bagging Ensemble 구현
+### **3.4 Bagging Ensemble 구현**
 
 모델의 stability와 performance를 향상시키기 위해 bagging ensemble 기법을 도입함:
 
@@ -239,64 +239,64 @@ class Bagging:
 
 ```
 
-**주요 구현 특징:**
+주요 구현 특징:
 
-- **Base learner 구성**
+- Base learner 구성
     - `LR` 기반 모델 75개 생성
     - 각 모델은 독립적으로 학습됨
-- **Bootstrap + 클래스 균형 샘플링**
+- Bootstrap + 클래스 균형 샘플링
     - 전체 샘플 중 90% 비율의 데이터 사용
     - 클래스 균형 유지: positive/negative 각각 동일 개수 추출
     - 중복 허용(random sampling with replacement)
-- **Feature subsampling**
+- Feature subsampling
     - 전체 feature 중 70% 무작위 선택
     - 모델마다 feature subset 상이
-- **Ensemble 예측**
+- Ensemble 예측
     - 각 모델 예측값 평균 → 0.5 이상이면 1, 아니면 0
 
-### 3.5 하이퍼파라미터
+### **3.5 하이퍼파라미터**
 
-**Bagging ensemble 모델의 hyperparameter:**
+Bagging ensemble 모델의 hyperparameter:
 
 - Ensemble size(`n`): 75
 - Sampling ratio(`samp_ratio`): 0.9
 - Feature ratio(`feat_ratio`): 0.7
 - Prediction threshold(`thr`): 0.5
 
-**Logistic regression 모델의 hyperparameter:**
+Logistic regression 모델의 hyperparameter:
 
 - Learning rate(`lr`): 0.04
 - Epochs: 5000
 - Regularization coefficient(`reg`): 0.02
 - Class weight(`alpha`): 1.5
 
-### 3.6 성능 평가
+### **3.6 성능 평가**
 
-Validation dataset에 대한 accuracy는 **68.50%**로, 첫 버전(**56.31%**)에 비해 **12.19%p** 향상된 결과를 보임.
+Validation dataset에 대한 accuracy는 68.50%로, 첫 버전(56.31%)에 비해 12.19%p 향상된 결과를 보임.
 
-### 3.7 개선 효과 및 한계점
+### **3.7 개선 효과 및 한계점**
 
-**개선 효과:**
+개선 효과:
 
 - Feature engineering을 통한 모델 expressiveness 향상
 - Bagging ensemble을 통한 모델 stability 향상
 - Class weight 도입으로 imbalanced data 처리 개선
 - Hyperparameter optimization을 통한 성능 향상
 
-**한계점:**
+한계점:
 
 - 여전히 logistic regression 기반으로 복잡한 패턴 포착에 한계 존재
 - Hard voting 방식은 noise에 취약
 - Bootstrap bias를 충분히 평균화하지 못함
 - 더 높은 성능을 위해서는 non-linearity가 강한 모델이 필요함
 
-## 4. Ver 3: Random Forest
+## **4. Ver 3: Random Forest**
 
-### 4.1 구현 개요
+### **4.1 구현 개요**
 
-Ver 3에서는,  non-linearity가 강한 데이터셋에서 복잡한 패턴을 더 효과적으로 포착하기 위해 decision tree 기반의 random forest 모델을 직접 구현함. Tree 모델의 특성에 맞게 feature engineering을 수행하고, 다양한 최적화 기법을 적용함.
+Ver 3에서는, non-linearity가 강한 데이터셋에서 복잡한 패턴을 더 효과적으로 포착하기 위해 decision tree 기반의 random forest 모델을 직접 구현함. Tree 모델의 특성에 맞게 feature engineering을 수행하고, 다양한 최적화 기법을 적용함.
 
-### 4.2 데이터 전처리 및 Feature Engineering
+### **4.2 데이터 전처리 및 Feature Engineering**
 
 기본적인 전처리는 이전 버전과 유사하게 수행하되, tree 모델에 적합한 feature engineering을 추가함:
 
@@ -329,19 +329,19 @@ def add_interactions(X):
     return X_new
 ```
 
-**주요 feature engineering:**
+주요 feature engineering:
 
 - Correlation analysis를 통해 선정된 feature 쌍 간 multiplication interaction 추가 (6쌍)
 - 중요도가 높은 feature 간 ratio feature 추가
 - Division by zero 오류 방지를 위한 작은 값(1e-8) 추가
 
-**이전 버전과의 차이점:**
+이전 버전과의 차이점:
 
 - Correlation analysis를 기반으로 한 더 체계적인 feature 선정
 - Ratio feature 추가로 tree 모델의 split efficiency 향상
 - Feature 간 관계를 더 명시적으로 모델링
 
-### 4.3 Random Forest 모델 구현
+### **4.3 Random Forest 모델 구현**
 
 Decision tree 기반의 random forest 모델을 직접 구현함:
 
@@ -365,9 +365,9 @@ class Model:
         self.no_improve = 0
 ```
 
-**주요 구현 특징:**
+주요 구현 특징:
 
-1. **Gini impurity와 information gain 계산:**
+1. Gini impurity와 information gain 계산:
     
     ```python
     def _gini_impurity(self, y):
@@ -392,12 +392,12 @@ class Model:
         return parent_gini - weighted_gini
     ```
     
-    - **Gini impurity 기반 노드 purity 측정**
+    - Gini impurity 기반 노드 purity 측정
         - 클래스 비율 $p$를 이용해 $2p(1−p)$ 방식으로 계산 (0에 가까울수록 pure)
-    - **Information Gain 계산**
+    - Information Gain 계산
         - 부모 노드와 자식 노드의 지니 지수를 가중 평균하여 Information Gain 계산
         - 분할이 유의미하지 않으면 이득은 0에 수렴
-2. **Decision tree 구축 알고리즘:**
+2. Decision tree 구축 알고리즘:
     
     ```python
     def _build_tree(self, X, y, depth=0):
@@ -462,15 +462,15 @@ class Model:
         }
     ```
     
-    - **재귀적 분할 기반 트리 구성**
+    - 재귀적 분할 기반 트리 구성
         - `max_depth`, `min_samples_split` 등 stopping 조건 명시
-    - **특성 서브샘플링 (`max_features` = `sqrt`)**
+    - 특성 서브샘플링 (`max_features` = `sqrt`)
         - √(전체 특성 수)만큼 랜덤으로 추출하여 분할 기준 탐색
-    - **Percentile 기반 threshold 후보**
+    - Percentile 기반 threshold 후보
         - 10, 25, 50, 75, 90% 사용하여 overfitting 방지
-    - **최적 information gain 기준 split**
-        - 유효한 분할 중 가장 높은 information gain을 제공하는 특성과  threshold 선택
-3. **모델 학습 및 OOB 평가:**
+    - 최적 information gain 기준 split
+        - 유효한 분할 중 가장 높은 information gain을 제공하는 특성과 threshold 선택
+3. 모델 학습 및 OOB 평가:
     
     ```python
     def fit(self, X, y):
@@ -510,13 +510,13 @@ class Model:
                     break
     ```
     
-    - **Bootstrap 샘플링 기반 트리 훈련**
+    - Bootstrap 샘플링 기반 트리 훈련
         - 각 트리는 중복 허용 랜덤 샘플을 사용해 개별적으로 훈련
-    - **OOB (Out-of-Bag) 평가 구현**
+    - OOB (Out-of-Bag) 평가 구현
         - Bootstrap에 포함되지 않은 샘플로 트리 성능 평가 (교차검증 대체)
-    - **Early Stopping**
+    - Early Stopping
         - OOB accuracy가 10 epoch 동안 개선되지 않으면 학습 중단
-4. **OOB 예측 및 최종 예측:**
+4. OOB 예측 및 최종 예측:
     
     ```python
     def _get_oob_predictions(self, X, n_trees):
@@ -551,39 +551,39 @@ class Model:
         return (probas > 0.5).astype(int)
     ```
     
-    - **OOB 예측 집계**
+    - OOB 예측 집계
         - 각 트리에서 OOB 샘플에 대한 예측을 평균하여 다수결 투표 형태로 예측 생성
-    - **확률 기반 예측**
+    - 확률 기반 예측
         - `predict_proba` 함수는 각 트리의 평균 예측값으로 클래스 1의 확률 추정
-    - **Binary classification을 위한 최종 예측**
+    - Binary classification을 위한 최종 예측
         - 0.5를 기준으로 thresholding하여 0 또는 1 클래스 반환
 
-### 4.4 주요 개선 사항
+### **4.4 주요 개선 사항**
 
-**이전 버전 대비 주요 개선 사항:**
+이전 버전 대비 주요 개선 사항:
 
-1. **모델 아키텍처 변경**:
+1. 모델 아키텍처 변경:
     - Logistic regression에서 decision tree 기반 random forest로 변경
     - Non-linearity가 강한 데이터에 더 적합한 모델 선택
-2. **Split 기준 최적화**:
+2. Split 기준 최적화:
     - Information gain 기반 split 기준 사용
     - 다양한 percentile(10%, 25%, 50%, 75%, 90%)을 threshold 후보로 사용
-3. **OOB 샘플 활용**:
+3. OOB 샘플 활용:
     - Bootstrap sampling 시 제외된 샘플을 validation에 활용
     - 모델 학습 중 performance monitoring 및 early stopping 기준으로 활용
-4. **Early stopping 구현**:
+4. Early stopping 구현:
     - OOB accuracy가 10회 연속으로 개선되지 않으면 학습 중단
     - Overfitting 방지 및 학습 효율성 향상
-5. **Soft voting 방식 사용:**
+5. Soft voting 방식 사용:
     - 각 tree의 예측 확률을 평균 후 최종 예측 결정
     - Hard voting 대비 noise에 robust한 예측 방식
-6. **Feature engineering 개선**:
+6. Feature engineering 개선:
     - Correlation analysis 기반 interaction feature 추가
     - 중요 feature 간 ratio feature 추가로 tree 모델의 split efficiency 향상
 
-### 4.5 하이퍼파라미터
+### **4.5 하이퍼파라미터**
 
-**Random forest 모델의 hyperparameter:**
+Random forest 모델의 hyperparameter:
 
 ```python
 max_depth_list = [5, 10, 15, 20]
@@ -610,7 +610,7 @@ for md in max_depth_list:
             print(f"Validation Accuracy: {val_accuracy * 100:.2f}%")
 ```
 
-- **Grid Search를 통해 최적값 산출**
+- Grid Search를 통해 최적값 산출
     - Number of trees(`n_estimators`): 400
     - Maximum depth(`max_depth`): 20
     - Minimum samples split(`min_samples_split`): 2
@@ -619,52 +619,52 @@ for md in max_depth_list:
     - Bootstrap sampling(`bootstrap`): True
     - Early stopping patience(`patience`): 10
 
-### 4.6 성능 평가
+### **4.6 성능 평가**
 
-Validation set에 대한 accuracy는 **75.88%**로, 두 번째 버전(**68.50%**)에 비해 **7.38%p** 향상된 결과를 보임.
+Validation set에 대한 accuracy는 75.88%로, 두 번째 버전(68.50%)에 비해 7.38%p 향상된 결과를 보임.
 
-## 5. Final version: **K-Fold Validation with Feature Selection**
+## **5. Final version: K-Fold Validation with Feature Selection**
 
-### 5.1 구현 개요
+### **5.1 구현 개요**
 
 최종 버전에서는 기존 Random Forest를 기반으로 K-fold 교차검증을 이용한 하이퍼파라미터 튜닝과 feature selection을 통합. 각 파라미터 조합과 feature 수 (k=[36, 38, 40])에 대해 5-fold 검증을 수행하여 최적 설정을 찾고, 선택된 feature만을 사용해 전체 학습 데이터를 학습.
 
-### 5.2 성능 평가
+### **5.2 성능 평가**
 
 K-fold 교차검증 결과 전체 40개 feature (기본 19개 + Ver 3에서 추가한 21개) 중 상위 38개의 피처를 사용했을 때 최고의 성능을 보임. 평균 정확도는 약 76.66%로 (std ± 0.75%), Ver 3 대비 소폭 향상
 
-## 6. 성능 비교 및 분석
+## **6. 성능 비교 및 분석**
 
-### 6.1 성능 변화 요약
+### **6.1 성능 변화 요약**
 
-**각 버전별 validation accuracy 변화:**
+각 버전별 validation accuracy 변화:
 
 - Baseline: 구현 없음
 - Ver 1 (Logistic Regression): 56.31%
 - Ver 2 (Logistic Regression + Bagging): 68.50% (+12.19%p)
 - Ver 3 (Random Forest): 75.88% (+7.38%p)
-- **Final version (Ver 3 & K-Fold & Feature Selection): 76.66% (+0.77%p)**
+- Final version (Ver 3 & K-Fold & Feature Selection): 76.66% (+0.77%p)
     
     **총 성능 향상: +20.35%p (Ver 1 대비 Final_version)**
     
 
-### 5.2 실패 요인 및 한계점
+### **5.2 실패 요인 및 한계점**
 
-1. **초기 데이터 특성 분석 부족 (Ver 1)**:
+1. 초기 데이터 특성 분석 부족 (Ver 1):
     - Ver 1에서 데이터의 non-linear 특성을 고려하지 않음
     - 데이터 탐색 없이 바로 모델링 시도
-2. **Logistic Regression 모델의 Expressiveness 한계 (Ver 2)**:
+2. Logistic Regression 모델의 Expressiveness 한계 (Ver 2):
     - Linear model로 복잡한 non-linear pattern 포착 어려움
     - Feature engineering으로 일부 보완했으나 근본적 한계 존재
-3. **더욱 강력한 Feature Engineering, 비선형 패턴 해석 모델의 필요성 (Final Ver)**:
+3. 더욱 강력한 Feature Engineering, 비선형 패턴 해석 모델의 필요성 (Final Ver):
     - 아직도 정확도가 76% 정도
     - 더욱 강력한 Engineering Technique이 필요
 
-## 6. 결론
+## **6. 결론**
 
 Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 단계별로 고찰함. 초기 logistic regression 모델에서 시작하여 feature engineering, bagging ensemble, random forest 그리고 최종적으로 k-fold validation with feature selection 까지 점진적인 개선을 통해 성능을 향상시킴.
 
-**주요 발견점:**
+주요 발견점:
 
 1. 데이터의 특성을 이해하고 이에 맞는 모델을 선택하는 것이 중요함
 2. Feature engineering은 모델 performance 향상에 큰 영향을 미침
@@ -672,9 +672,9 @@ Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 �
 4. OOB 샘플을 활용한 monitoring과 early stopping은 효율적인 모델 학습에 도움이 됨
 5. Soft voting 방식은 hard voting 대비 noise에 robust한 prediction을 제공함
 
-**향후 개선 방향:**
+향후 개선 방향:
 
 1. 더 다양한 feature engineering 기법 탐색
 2. Hyperparameter optimization을 위한 효율적인 방법론 적용
-3. 다양한 ensemble 기법(Gradient boosting 등) 비교 분석
+3. 다양한 ensemble 기법(Gradient boost, XGBoost 등) 비교 분석
 4. Imbalanced data 처리를 위한 추가적인 기법 적용
