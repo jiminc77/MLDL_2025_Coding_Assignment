@@ -621,34 +621,126 @@ for md in max_depth_list:
 
 ### **4.6 성능 평가**
 
-Validation set에 대한 accuracy는 75.88%로, 두 번째 버전(68.50%)에 비해 7.38%p 향상된 결과를 보임.
+Validation set에 대한 accuracy는 75.88%로, 두 번째 버전(68.50%)에 비해 7.38%p 향상된 결과를 보임
 
-## **5. Final version: K-Fold Validation with Feature Selection**
+## **5. Ver 4: K-Fold CV + Feature Selection**
 
 ### **5.1 구현 개요**
 
-최종 버전에서는 기존 Random Forest를 기반으로 K-fold 교차검증을 이용한 하이퍼파라미터 튜닝과 feature selection을 통합. 각 파라미터 조합과 feature 수 (k=[36, 38, 40])에 대해 5-fold 검증을 수행하여 최적 설정을 찾고, 선택된 feature만을 사용해 전체 학습 데이터를 학습.
+최종 버전에서는 다음과 같은 세 가지 개선 사항을 적용함
 
-### **5.2 성능 평가**
+1. K-Fold Cross-Validation 도입
+2. 모델 기반 Feature Importance
+3. Feature Selection
 
-K-fold 교차검증 결과 전체 40개 feature (기본 19개 + Ver 3에서 추가한 21개) 중 상위 38개의 피처를 사용했을 때 최고의 성능을 보임. 평균 정확도는 약 76.66%로 (std ± 0.75%), Ver 3 대비 소폭 향상
+### **5.2 K-Fold Cross-Validation 도입**
 
-## **6. 성능 비교 및 분석**
+- 이전 버전(Ver 3)은 단일 train/test split으로 모델을 평가하여 데이터 분할에 따른 우연성에 취약. 이를 해결하기 위해 K-Fold Cross-Validation (k=10)을 도입, 모델의 일반화 성능을 안정적으로 평가
+- 전체 훈련 데이터를 10개 fold로 나누어 9개는 훈련, 1개는 검증에 사용하는 과정을 10번 반복. 각 fold의 검증 점수 평균과 표준편차를 통해 하이퍼파라미터 조합의 성능을 종합적으로 판단
+- `cross_val_score` 내부의 `model.fit()` 호출 시, 해당 fold의 훈련 데이터에 대한 **OOB 기반 Early Stopping**이 독립적으로 수행
+    
+    ```python
+    def k_fold_indices(n_samples, k, seed=42):
+        rng = np.random.default_rng(seed)
+        indices = rng.permutation(n_samples)
+        fold_sizes = [n_samples // k] * k
+        for i in range(n_samples % k):
+            fold_sizes[i] += 1
+        folds, current = [], 0
+        for size in fold_sizes:
+            folds.append(indices[current: current + size])
+            current += size
+        return folds
+    
+    def cross_val_score(X, y, params, k=10):
+        folds = k_fold_indices(len(X), k)
+        scores = []
+        print(f"Cross-validation (k={k}) started...")
+        for i in range(k):
+            print(f"Fold {i + 1}/{k}")
+            val_idx = folds[i]
+            train_idx = np.hstack([folds[j] for j in range(k) if j != i])
+            model = Model()
+            for key, value in params.items():
+                setattr(model, key, value)
+            model.fit(X[train_idx], y[train_idx])
+            preds = model.predict(X[val_idx])
+            acc = np.mean(preds == y[val_idx])
+            scores.append(acc)
+            print(f"Fold {i + 1} Accuracy: {acc*100:.2f}%")
+        mean_score = np.mean(scores)
+        std_score = np.std(scores)
+    		...
+    ```
+    
 
-### **6.1 성능 변화 요약**
+### **5.3 모델 기반 Feature Importance 및 Engineering**
 
-각 버전별 validation accuracy 변화:
+- 이전 버전은 선형 관계를 측정하는 Pearson 상관계수 기반으로 feature를 선택(선형성), 비선형적인 결정 트리의 특성을 완전히 반영하지 못하는 한계 존재
+- 최종 버전은 Random Forest 모델 자체의 학습 메커니즘을 활용하여 feature importance를 계산. 초기 모델을 전체 기본 feature(20개)으로 학습시킨 후, 각 분할(split)에서 얻는 Gini Impurity 감소량을 누적하여 feature importance 측정
+    
+    ```python
+    def _build_tree(self, X, y, depth=0, importance_tracker=None):
+        ...
+        if best_feature is not None:
+            if importance_tracker is not None:
+                importance_tracker[best_feature] += best_gain
+        ...
+    
+    def fit(self, X, y):
+        ...
+        total_importance = np.zeros(n_features)
+        for i in range(self.n_estimators):
+            # ...
+            importance_tracker = np.zeros(n_features)
+            tree = self._build_tree(X_bootstrap, y_bootstrap, importance_tracker=importance_tracker)
+            total_importance += importance_tracker
+        ...
+        self.feature_importance_ = total_importance / np.sum(total_importance)
+    ```
+    
+- 이렇게 계산된 중요도를 바탕으로 상위 5개 `top_feats`을 선정하고, 이들 간의 곱셈 및 나눗셈 상호작용 항을 생성
+
+### **5.4 Feature Selection**
+
+- 기존에는 모든 feature를 학습에 활용했다면, 이번에는 계산된 feature importance 순으로 상위 `k`개의 feature만 선택하여 학습. `k`값은 `[36, 38, 40, 42, 44]` 범위에서 탐색하여 최적의 feature 개수 선택
+    
+    ```python
+    k_list = [36, 38, 40, 42, 44]
+    
+    for k_feat in k_list:
+        sel_idx = np.argsort(final_importance)[::-1][:k_feat]
+        X_sel = X_eng[:, sel_idx]
+    
+        for md in param_grid['max_depth']:
+            for mss in param_grid['min_samples_split']:
+                for msl in param_grid['min_samples_leaf']:
+                    params = {'max_depth': md, 'min_samples_split': mss, 'min_samples_leaf': msl}
+                    score = cross_val_score(X_sel, y_full, params, k=10)
+                    ...
+    ```
+    
+
+### **5.5 성능 평가**
+
+상위 40~42개의 feature를 사용했을 때 가장 안정적이고 높은 성능을 보임. 최종적으로 선택된 최적의 파라미터 조합으로 10-Fold CV 수행 시, 평균 77.52% (±0.86%)의 정확도 달성
+
+## 6. 성능 비교 및 분석
+
+### 6.1 성능 변화 요약
+
+**각 버전별 validation accuracy 변화:**
 
 - Baseline: 구현 없음
 - Ver 1 (Logistic Regression): 56.31%
 - Ver 2 (Logistic Regression + Bagging): 68.50% (+12.19%p)
 - Ver 3 (Random Forest): 75.88% (+7.38%p)
-- Final version (Ver 3 & K-Fold & Feature Selection): 76.66% (+0.77%p)
+- **Ver 4 (Ver 3 & K-Fold & Feature Selection): 77.52% (+1.64%p)**
     
-    **총 성능 향상: +20.35%p (Ver 1 대비 Final_version)**
+    **총 성능 향상: +21.21%p (Ver 1 대비 Ver 4)**
     
 
-### **5.2 실패 요인 및 한계점**
+### **6.2 실패 요인 및 한계점**
 
 1. 초기 데이터 특성 분석 부족 (Ver 1):
     - Ver 1에서 데이터의 non-linear 특성을 고려하지 않음
@@ -656,11 +748,11 @@ K-fold 교차검증 결과 전체 40개 feature (기본 19개 + Ver 3에서 추�
 2. Logistic Regression 모델의 Expressiveness 한계 (Ver 2):
     - Linear model로 복잡한 non-linear pattern 포착 어려움
     - Feature engineering으로 일부 보완했으나 근본적 한계 존재
-3. 더욱 강력한 Feature Engineering, 비선형 패턴 해석 모델의 필요성 (Final Ver):
-    - 아직도 정확도가 76% 정도
+3. 더욱 강력한 Feature Engineering, 비선형 패턴 해석 모델의 필요성 (Ver 4):
+    - 아직도 정확도가 77% 정도
     - 더욱 강력한 Engineering Technique이 필요
 
-## **6. 결론**
+## **7. 결론**
 
 Binary classification 문제를 해결하기 위한 ML 모델 개발 과정을 단계별로 고찰함. 초기 logistic regression 모델에서 시작하여 feature engineering, bagging ensemble, random forest 그리고 최종적으로 k-fold validation with feature selection 까지 점진적인 개선을 통해 성능을 향상시킴.
 
