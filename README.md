@@ -573,7 +573,7 @@ class Model:
     - 모델 학습 중 performance monitoring 및 early stopping 기준으로 활용
 4. Early stopping 구현:
     - OOB accuracy가 10회 연속으로 개선되지 않으면 학습 중단
-    - Overfitting 방지 및 학습 효율성 향상
+    - 학습 효율성 향상
 5. Soft voting 방식 사용:
     - 각 tree의 예측 확률을 평균 후 최종 예측 결정
     - Hard voting 대비 noise에 robust한 예측 방식
